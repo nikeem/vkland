@@ -36,28 +36,27 @@ export const App = () => {
             </Text>
            
 
-  <Button
+           <Button
   size="l"
   stretched
   style={{ marginTop: 16 }}
   onClick={() => {
-    console.log('👆 Кнопка нажата');
-
-    bridge.send('VKWebAppGetUserInfo')
-      .then(user => {
-        console.log('✅ Получен user_id:', user.id);
-
-        return bridge.send('VKWebAppTrackEvent', {
-          event_name: 'take_test',
-          user_id: String(user.id),
-        });
+    if (userId) {
+      bridge.send('VKWebAppTrackEvent', {
+        event_name: 'take_test',
+        user_id: String(userId), // обязательно как строка
       })
-      .then(response => {
-        console.log('📬 Событие отправлено!', response);
+      .then((data) => {
+        if (data.result) {
+          console.log('Событие отправлено!');
+        }
       })
-      .catch(error => {
-        console.error('❌ Ошибка:', error);
+      .catch((error) => {
+        console.log('Ошибка отправки события:', error);
       });
+    } else {
+      console.log('user_id пока не получен');
+    }
   }}
 >
   Пройти тест
