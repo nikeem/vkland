@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import bridge from '@vkontakte/vk-bridge';
 import {
   View,
@@ -10,11 +10,21 @@ import {
   Text,
 } from '@vkontakte/vkui';
 
-const [userId, setUserId] = useState(null);
-
 export const App = () => {
+  const [userId, setUserId] = useState(null); // ← правильно внутри компонента
+
   useEffect(() => {
     bridge.send('VKWebAppInit');
+
+    // получаем user_id при загрузке
+    bridge.send('VKWebAppGetUserInfo')
+      .then((data) => {
+        setUserId(data.id);
+        console.log('User ID получен:', data.id);
+      })
+      .catch((error) => {
+        console.log('Ошибка получения user_id:', error);
+      });
   }, []);
 
   return (
@@ -34,36 +44,32 @@ export const App = () => {
             <Text style={{ marginTop: 8 }}>
               Здесь можно разместить информацию о продукте, кнопки, ссылки и т.п.
             </Text>
-           
 
-           <Button
-  size="l"
-  stretched
-  style={{ marginTop: 16 }}
-  onClick={() => {
-    if (userId) {
-      bridge.send('VKWebAppTrackEvent', {
-        event_name: 'take_test',
-        user_id: String(userId), // обязательно как строка
-      })
-      .then((data) => {
-        if (data.result) {
-          console.log('Событие отправлено!');
-        }
-      })
-      .catch((error) => {
-        console.log('Ошибка отправки события:', error);
-      });
-    } else {
-      console.log('user_id пока не получен');
-    }
-  }}
->
-  Пройти тест
-</Button>
-
-
-
+            <Button
+              size="l"
+              stretched
+              style={{ marginTop: 16 }}
+              onClick={() => {
+                if (userId) {
+                  bridge.send('VKWebAppTrackEvent', {
+                    event_name: 'take_test',
+                    user_id: String(userId),
+                  })
+                    .then((data) => {
+                      if (data.result) {
+                        console.log('Событие отправлено!');
+                      }
+                    })
+                    .catch((error) => {
+                      console.log('Ошибка отправки события:', error);
+                    });
+                } else {
+                  console.log('user_id пока не получен');
+                }
+              }}
+            >
+              Пройти тест
+            </Button>
           </Div>
         </Group>
       </Panel>
