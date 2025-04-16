@@ -10,6 +10,8 @@ import {
   Text,
 } from '@vkontakte/vkui';
 
+const [userId, setUserId] = useState(null);
+
 export const App = () => {
   useEffect(() => {
     bridge.send('VKWebAppInit');
@@ -32,19 +34,36 @@ export const App = () => {
             <Text style={{ marginTop: 8 }}>
               Здесь можно разместить информацию о продукте, кнопки, ссылки и т.п.
             </Text>
+           
+
            <Button
   size="l"
   stretched
   style={{ marginTop: 16 }}
   onClick={() => {
-    bridge.send('VKWebAppTrackEvent', {
-      event_type: 'reach_goal',
-      event_name: 'take_test',
-    });
+    if (userId) {
+      bridge.send('VKWebAppTrackEvent', {
+        event_name: 'take_test',
+        user_id: String(userId), // обязательно как строка
+      })
+      .then((data) => {
+        if (data.result) {
+          console.log('Событие отправлено!');
+        }
+      })
+      .catch((error) => {
+        console.log('Ошибка отправки события:', error);
+      });
+    } else {
+      console.log('user_id пока не получен');
+    }
   }}
 >
   Пройти тест
 </Button>
+
+
+
           </Div>
         </Group>
       </Panel>
