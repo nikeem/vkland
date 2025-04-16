@@ -32,9 +32,19 @@ export const App = () => {
             <Text style={{ marginTop: 8 }}>
               Здесь можно разместить информацию о продукте, кнопки, ссылки и т.п.
             </Text>
-            <Button size="l" stretched style={{ marginTop: 16 }}>
-              Узнать больше
-            </Button>
+           <Button
+  size="l"
+  stretched
+  style={{ marginTop: 16 }}
+  onClick={() => {
+    bridge.send('VKWebAppTrackEvent', {
+      event_type: 'reach_goal',
+      event_name: 'take_test',
+    });
+  }}
+>
+  Пройти тест
+</Button>
           </Div>
         </Group>
       </Panel>
