@@ -46,30 +46,30 @@ export const App = () => {
             </Text>
 
             <Button
-              size="l"
-              stretched
-              style={{ marginTop: 16 }}
-              onClick={() => {
-                if (userId) {
-                  bridge.send('VKWebAppTrackEvent', {
-                    event_name: 'take_test',
-                    user_id: String(userId),
-                  })
-                    .then((data) => {
-                      if (data.result) {
-                        console.log('Событие отправлено!');
-                      }
-                    })
-                    .catch((error) => {
-                      console.log('Ошибка отправки события:', error);
-                    });
-                } else {
-                  console.log('user_id пока не получен');
-                }
-              }}
-            >
-              Пройти тест
-            </Button>
+  size="l"
+  stretched
+  style={{ marginTop: 16 }}
+  onClick={() => {
+    if (userId) {
+      bridge.send('VKWebAppTrackEvent', {
+        event_name: 'debug_event_654321', // 👈 уникальное имя
+        user_id: String(userId),
+      })
+        .then((data) => {
+          if (data.result) {
+            console.log('✅ Событие debug_event_654321 отправлено!');
+          }
+        })
+        .catch((error) => {
+          console.error('❌ Ошибка отправки события:', error);
+        });
+    } else {
+      console.warn('user_id пока не получен');
+    }
+  }}
+>
+  Отправить тестовое событие
+</Button>
           </Div>
         </Group>
       </Panel>
