@@ -14,18 +14,18 @@ export const App = () => {
   const [userId, setUserId] = useState(null); // ← правильно внутри компонента
 
   useEffect(() => {
-    bridge.send('VKWebAppInit');
+  console.log('🔄 useEffect запущен');
+  bridge.send('VKWebAppInit');
 
-    // получаем user_id при загрузке
-    bridge.send('VKWebAppGetUserInfo')
-      .then((data) => {
-        setUserId(data.id);
-        console.log('User ID получен:', data.id);
-      })
-      .catch((error) => {
-        console.log('Ошибка получения user_id:', error);
-      });
-  }, []);
+  bridge.send('VKWebAppGetUserInfo')
+    .then((data) => {
+      console.log('✅ VKWebAppGetUserInfo успешно:', data);
+      setUserId(data.id);
+    })
+    .catch((error) => {
+      console.error('❌ Ошибка VKWebAppGetUserInfo:', error);
+    });
+}, []);
 
   return (
     <View activePanel="main">
