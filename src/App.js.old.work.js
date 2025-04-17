@@ -46,45 +46,30 @@ export const App = () => {
             </Text>
 
             <Button
-  size="l"
-  stretched
-  style={{ marginTop: 16 }}
-  onClick={async () => {
-    if (!userId) {
-      console.log('user_id пока не получен');
-      return;
-    }
-
-    try {
-      const eventResult = await bridge.send('VKWebAppTrackEvent', {
-        event_name: 'take_test',
-        user_id: String(userId),
-      });
-
-      if (eventResult.result) {
-        console.log('✅ Событие отправлено!');
-      }
-
-      const res = await fetch('https://vkland01.vercel.app/api/add-subscriber', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          subscription_id: 3245839, // ← твой ID подписной группы
-        }),
-      });
-
-      const data = await res.json();
-      console.log('✅ Пользователь добавлен в Senler:', data);
-    } catch (error) {
-      console.error('❌ Ошибка:', error);
-    }
-  }}
->
-  Пройти тест
-</Button>
+              size="l"
+              stretched
+              style={{ marginTop: 16 }}
+              onClick={() => {
+                if (userId) {
+                  bridge.send('VKWebAppTrackEvent', {
+                    event_name: 'take_test',
+                    user_id: String(userId),
+                  })
+                    .then((data) => {
+                      if (data.result) {
+                        console.log('Событие отправлено!');
+                      }
+                    })
+                    .catch((error) => {
+                      console.log('Ошибка отправки события:', error);
+                    });
+                } else {
+                  console.log('user_id пока не получен');
+                }
+              }}
+            >
+              Пройти тест
+            </Button>
           </Div>
         </Group>
       </Panel>
