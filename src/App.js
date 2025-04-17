@@ -45,7 +45,7 @@ export const App = () => {
               Здесь можно разместить информацию о продукте, кнопки, ссылки и т.п.
             </Text>
 
-           <Button
+<Button
   size="l"
   stretched
   style={{ marginTop: 16 }}
@@ -56,16 +56,14 @@ export const App = () => {
     }
 
     try {
-      // 1. Проверяем разрешение
-      const check = await bridge.send('VKWebAppCheckAllowedMessagesFromGroup', {
-        group_id: 92756109,
-      });
-
-      if (!check.is_allowed) {
+      // 1. Попытка запросить разрешение на сообщения (молча игнорируется, если не поддерживается)
+      try {
         const allow = await bridge.send('VKWebAppAllowMessagesFromGroup', {
           group_id: 92756109,
         });
-        console.log('✅ Разрешение получено:', allow);
+        console.log('✅ Разрешение на сообщения (или уже было):', allow);
+      } catch (e) {
+        console.warn('⚠️ Не удалось запросить разрешение (возможно, desktop):', e);
       }
 
       // 2. Добавление в Senler
@@ -88,7 +86,7 @@ export const App = () => {
       if (result?.success) {
         console.log('✅ Пользователь успешно добавлен в Senler!');
 
-        // 3. Отправляем событие "subscribe" в VK Ads
+        // 3. Отправляем событие "subscribe"
         const eventResult = await bridge.send('VKWebAppTrackEvent', {
           event_name: 'subscribe',
           user_id: String(userId),
@@ -101,12 +99,13 @@ export const App = () => {
         console.warn('⚠️ Пользователь не добавлен в Senler:', result?.error);
       }
     } catch (error) {
-      console.error('❌ Ошибка:', error);
+      console.error('❌ Общая ошибка:', error);
     }
   }}
 >
   Подписаться на рассылку
 </Button>
+
 
 
 
