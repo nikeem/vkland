@@ -14,18 +14,18 @@ export const App = () => {
   const [userId, setUserId] = useState(null); // ← правильно внутри компонента
 
   useEffect(() => {
-  console.log('🔄 useEffect запущен');
-  bridge.send('VKWebAppInit');
+    bridge.send('VKWebAppInit');
 
-  bridge.send('VKWebAppGetUserInfo')
-    .then((data) => {
-      console.log('✅ VKWebAppGetUserInfo успешно:', data);
-      setUserId(data.id);
-    })
-    .catch((error) => {
-      console.error('❌ Ошибка VKWebAppGetUserInfo:', error);
-    });
-}, []);
+    // получаем user_id при загрузке
+    bridge.send('VKWebAppGetUserInfo')
+      .then((data) => {
+        setUserId(data.id);
+        console.log('User ID получен:', data.id);
+      })
+      .catch((error) => {
+        console.log('Ошибка получения user_id:', error);
+      });
+  }, []);
 
   return (
     <View activePanel="main">
@@ -72,6 +72,7 @@ export const App = () => {
         },
         body: JSON.stringify({
           user_id: userId,
+          force: 1,
           subscription_id: 3245839, // ← твой ID подписной группы
         }),
       });
