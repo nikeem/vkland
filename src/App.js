@@ -56,33 +56,19 @@ export const App = () => {
     }
 
     try {
-      // 1. Трекинг события
-      const eventResult = await bridge.send('VKWebAppTrackEvent', {
-        event_name: 'take_test',
-        user_id: String(userId),
-      });
-      if (eventResult.result) {
-        console.log('✅ Событие отправлено!');
-      }
-
-      // 2. Проверяем, разрешены ли сообщения
+      // 1. Проверяем разрешение
       const check = await bridge.send('VKWebAppCheckAllowedMessagesFromGroup', {
         group_id: 92756109,
       });
 
-      console.log('🕵️ Разрешение проверено:', check);
-
-      // 3. Если не разрешено — просим разрешение
       if (!check.is_allowed) {
         const allow = await bridge.send('VKWebAppAllowMessagesFromGroup', {
           group_id: 92756109,
         });
         console.log('✅ Разрешение получено:', allow);
-      } else {
-        console.log('✅ Сообщения уже разрешены');
       }
 
-      // 4. Отправка в Senler
+      // 2. Добавление в Senler
       const res = await fetch('https://vkland01.vercel.app/api/add-subscriber', {
         method: 'POST',
         headers: {
@@ -97,18 +83,33 @@ export const App = () => {
       const data = await res.json();
       console.log('📬 Ответ от Senler:', data);
 
-      if (data.subscribers?.[0]?.success) {
+      const result = data.subscribers?.[0];
+
+      if (result?.success) {
         console.log('✅ Пользователь успешно добавлен в Senler!');
+
+        // 3. Отправляем событие "subscribe" в VK Ads
+        const eventResult = await bridge.send('VKWebAppTrackEvent', {
+          event_name: 'subscribe',
+          user_id: String(userId),
+        });
+
+        if (eventResult.result) {
+          console.log('📈 Событие subscribe отправлено!');
+        }
       } else {
-        console.warn('⚠️ Пользователь не добавлен в Senler:', data.subscribers?.[0]?.error);
+        console.warn('⚠️ Пользователь не добавлен в Senler:', result?.error);
       }
     } catch (error) {
       console.error('❌ Ошибка:', error);
     }
   }}
 >
-  Пройти тест
+  Подписаться на рассылку
 </Button>
+
+
+
 
           </Div>
         </Group>
