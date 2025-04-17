@@ -96,10 +96,26 @@ export const App = () => {
           console.log('📈 Событие subscribe отправлено!');
         }
 
-        // 4. Перенаправление в сообщения
-        await bridge.send('VKWebAppOpenLink', {
-          link: 'https://vk.com/im?sel=-92756109',
-        });
+        // 4. Перенаправление в сообщения с сообществом
+        try {
+          const launchParams = await bridge.send('VKWebAppGetLaunchParams');
+          const platform = launchParams.vk_platform;
+
+          console.log('🧭 Платформа запуска:', platform);
+
+          const link = 'https://vk.com/im?sel=-92756109';
+
+          if (platform === 'mobile_android' || platform === 'mobile_iphone') {
+            await bridge.send('VKWebAppOpenLink', { link });
+            console.log('🔗 Открыли через VKWebAppOpenLink (мобильный)');
+          } else {
+            window.location.href = link;
+            console.log('🔗 Перенаправили через window.location.href (десктоп)');
+          }
+        } catch (e) {
+          console.warn('⚠️ Не удалось определить платформу или открыть ссылку:', e);
+          window.location.href = 'https://vk.com/im?sel=-92756109';
+        }
       } else {
         console.warn('⚠️ Пользователь не добавлен в Senler:', result?.error);
       }
@@ -110,6 +126,7 @@ export const App = () => {
 >
   Подписаться на рассылку
 </Button>
+
 
 
 
