@@ -49,40 +49,52 @@ export const App = () => {
   size="l"
   stretched
   style={{ marginTop: 16 }}
+
+
+  
   onClick={async () => {
-    if (!userId) {
-      console.log('user_id пока не получен');
-      return;
+  if (!userId) {
+    console.log('user_id пока не получен');
+    return;
+  }
+
+  try {
+    // Сначала — трекинг события
+    const eventResult = await bridge.send('VKWebAppTrackEvent', {
+      event_name: 'take_test',
+      user_id: String(userId),
+    });
+
+    if (eventResult.result) {
+      console.log('✅ Событие отправлено!');
     }
 
-    try {
-      const eventResult = await bridge.send('VKWebAppTrackEvent', {
-        event_name: 'take_test',
-        user_id: String(userId),
-      });
+    // Затем — запрос разрешения на отправку сообщений
+    const allowResult = await bridge.send('VKWebAppAllowMessagesFromGroup', {
+      group_id: 92756109,
+    });
 
-      if (eventResult.result) {
-        console.log('✅ Событие отправлено!');
-      }
+    console.log('✅ Разрешение получено:', allowResult);
 
-      const res = await fetch('https://vkland01.vercel.app/api/add-subscriber', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          force: 1,
-          subscription_id: 3245839, // ← твой ID подписной группы
-        }),
-      });
+    // После этого — запрос в Senler
+    const res = await fetch('https://vkland01.vercel.app/api/add-subscriber', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        subscription_id: 3245839,
+      }),
+    });
 
-      const data = await res.json();
-      console.log('✅ Пользователь добавлен в Senler:', data);
-    } catch (error) {
-      console.error('❌ Ошибка:', error);
-    }
-  }}
+    const data = await res.json();
+    console.log('✅ Пользователь добавлен в Senler:', data);
+  } catch (error) {
+    console.error('❌ Ошибка:', error);
+  }
+}}
+
 >
   Пройти тест
 </Button>
