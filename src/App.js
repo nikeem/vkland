@@ -13,7 +13,6 @@ import {
 export const App = () => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     bridge.send('VKWebAppInit');
@@ -38,17 +37,17 @@ export const App = () => {
     setLoading(true);
 
     try {
-      // 1. Разрешение на сообщения
+      // 1. Запрашиваем разрешение на сообщения
       try {
-        const allow = await bridge.send('VKWebAppAllowMessagesFromGroup', {
+        await bridge.send('VKWebAppAllowMessagesFromGroup', {
           group_id: 92756109,
         });
-        console.log('✅ Разрешение на сообщения (или уже было):', allow);
+        console.log('✅ Разрешение получено или уже есть');
       } catch (e) {
         console.warn('⚠️ Не удалось запросить разрешение:', e);
       }
 
-      // 2. Добавление в Senler
+      // 2. Добавляем в Senler
       const res = await fetch('https://vkland01.vercel.app/api/add-subscriber', {
         method: 'POST',
         headers: {
@@ -66,34 +65,21 @@ export const App = () => {
       console.log('📬 Ответ от Senler:', data);
 
       if (result?.success) {
-        console.log('✅ Пользователь добавлен в Senler');
+        console.log('✅ Добавлен в Senler');
 
-        // 3. Отправка события в VK Ads
+        // 3. Трекинг события
         await bridge.send('VKWebAppTrackEvent', {
           event_name: 'subscribe',
           user_id: String(userId),
         });
 
-        // 4. Переход в сообщения
-        const launchParams = await bridge.send('VKWebAppGetLaunchParams');
-        const platform = launchParams.vk_platform;
-        const link = 'https://vk.com/im?sel=-92756109';
-
-        if (platform === 'mobile_android' || platform === 'mobile_iphone') {
-          // Мобильное устройство
-          await bridge.send('VKWebAppOpenLink', { link });
-        } else {
-          // Десктоп
-          await bridge.send('VKWebAppClose', { status: 'success' });
-          setTimeout(() => {
-            location.replace(link);
-          }, 100); // немного подождать, пока закроется миниапп
-        }
+        // 4. Просто закрываем миниапп
+        await bridge.send('VKWebAppClose', { status: 'success' });
       } else {
-        console.warn('⚠️ Ошибка добавления в Senler:', result?.error || data);
+        console.warn('⚠️ Не удалось добавить в Senler:', result?.error || data);
       }
     } catch (error) {
-      console.error('❌ Ошибка при подписке:', error);
+      console.error('❌ Ошибка подписки:', error);
     }
 
     setLoading(false);
@@ -110,7 +96,6 @@ export const App = () => {
               alt="Баннер"
               style={{ width: '100%', borderRadius: 12 }}
             />
-
             <Text weight="2" style={{ marginTop: 16, fontSize: 20 }}>
               Ваш персональный лендинг
             </Text>
