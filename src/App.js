@@ -8,7 +8,6 @@ import {
   Button,
   Div,
   Text,
-  Spinner,
 } from '@vkontakte/vkui';
 
 export const App = () => {
@@ -39,14 +38,14 @@ export const App = () => {
     setLoading(true);
 
     try {
-      // 1. Запрашиваем разрешение на сообщения
+      // 1. Разрешение на сообщения
       try {
         const allow = await bridge.send('VKWebAppAllowMessagesFromGroup', {
           group_id: 92756109,
         });
         console.log('✅ Разрешение на сообщения (или уже было):', allow);
       } catch (e) {
-        console.warn('⚠️ Не удалось запросить разрешение (возможно, desktop):', e);
+        console.warn('⚠️ Не удалось запросить разрешение:', e);
       }
 
       // 2. Добавление в Senler
@@ -67,40 +66,37 @@ export const App = () => {
       console.log('📬 Ответ от Senler:', data);
 
       if (result?.success) {
-        console.log('✅ Пользователь успешно добавлен в Senler!');
+        console.log('✅ Пользователь добавлен в Senler');
 
-        // 3. Отправляем событие в VK Ads
+        // 3. Отправка события в VK Ads
         await bridge.send('VKWebAppTrackEvent', {
           event_name: 'subscribe',
           user_id: String(userId),
         });
 
-        setShowSuccess(true); // Показываем блок с кнопкой "перейти в сообщения"
+        // 4. Переход в сообщения
+        const launchParams = await bridge.send('VKWebAppGetLaunchParams');
+        const platform = launchParams.vk_platform;
+        const link = 'https://vk.com/im?sel=-92756109';
+
+        if (platform === 'mobile_android' || platform === 'mobile_iphone') {
+          // Мобильное устройство
+          await bridge.send('VKWebAppOpenLink', { link });
+        } else {
+          // Десктоп
+          await bridge.send('VKWebAppClose', { status: 'success' });
+          setTimeout(() => {
+            location.replace(link);
+          }, 100); // немного подождать, пока закроется миниапп
+        }
       } else {
-        console.warn('⚠️ Пользователь не добавлен в Senler:', result?.error || data);
+        console.warn('⚠️ Ошибка добавления в Senler:', result?.error || data);
       }
     } catch (error) {
-      console.error('❌ Общая ошибка подписки:', error);
+      console.error('❌ Ошибка при подписке:', error);
     }
 
     setLoading(false);
-  };
-
-  const handleOpenMessages = async () => {
-    const link = 'https://vk.com/im?sel=-92756109';
-    try {
-      const launchParams = await bridge.send('VKWebAppGetLaunchParams');
-      const platform = launchParams.vk_platform;
-
-      if (platform === 'mobile_android' || platform === 'mobile_iphone') {
-        await bridge.send('VKWebAppOpenLink', { link });
-      } else {
-        window.location.href = link;
-      }
-    } catch (e) {
-      console.warn('⚠️ Ошибка открытия ссылок:', e);
-      window.location.href = link;
-    }
   };
 
   return (
@@ -115,43 +111,23 @@ export const App = () => {
               style={{ width: '100%', borderRadius: 12 }}
             />
 
-            {!showSuccess ? (
-              <>
-                <Text weight="2" style={{ marginTop: 16, fontSize: 20 }}>
-                  Ваш персональный лендинг
-                </Text>
-                <Text style={{ marginTop: 8 }}>
-                  Здесь можно разместить информацию о продукте, кнопки, ссылки и т.п.
-                </Text>
-                <Button
-                  size="l"
-                  stretched
-                  style={{ marginTop: 16 }}
-                  loading={loading}
-                  disabled={loading}
-                  onClick={handleSubscribe}
-                >
-                  {loading ? 'Обработка...' : 'Подписаться на рассылку'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Text weight="2" style={{ marginTop: 16, fontSize: 20 }}>
-                  🎉 Спасибо за подписку!
-                </Text>
-                <Text style={{ marginTop: 8 }}>
-                  Мы уже отправили вам первое сообщение.
-                </Text>
-                <Button
-                  size="l"
-                  stretched
-                  style={{ marginTop: 16 }}
-                  onClick={handleOpenMessages}
-                >
-                  Перейти в сообщения
-                </Button>
-              </>
-            )}
+            <Text weight="2" style={{ marginTop: 16, fontSize: 20 }}>
+              Ваш персональный лендинг
+            </Text>
+            <Text style={{ marginTop: 8 }}>
+              Здесь можно разместить информацию о продукте, кнопки, ссылки и т.п.
+            </Text>
+
+            <Button
+              size="l"
+              stretched
+              style={{ marginTop: 16 }}
+              loading={loading}
+              disabled={loading}
+              onClick={handleSubscribe}
+            >
+              {loading ? 'Обработка...' : 'Подписаться на рассылку'}
+            </Button>
           </Div>
         </Group>
       </Panel>
