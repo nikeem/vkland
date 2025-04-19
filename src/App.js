@@ -106,12 +106,14 @@ export const App = () => {
           const link = 'https://vk.com/im?sel=-92756109';
 
           if (platform === 'mobile_android' || platform === 'mobile_iphone') {
-            await bridge.send('VKWebAppOpenLink', { link });
-            console.log('🔗 Открыли через VKWebAppOpenLink (мобильный)');
-          } else {
-            window.location.href = link;
-            console.log('🔗 Перенаправили через window.location.href (десктоп)');
-          }
+  await bridge.send('VKWebAppOpenLink', { link });
+  console.log('🔗 Открыли через VKWebAppOpenLink (мобильный)');
+} else {
+  await bridge.send('VKWebAppClose', { status: 'success' });
+  window.location.href = link;
+  console.log('🔗 Закрыли mini app и открыли в том же окне (десктоп)');
+}
+
         } catch (e) {
           console.warn('⚠️ Не удалось определить платформу или открыть ссылку:', e);
           window.location.href = 'https://vk.com/im?sel=-92756109';
